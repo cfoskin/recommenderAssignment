@@ -33,7 +33,6 @@ public class Reccomender {
 		//		readFilms();
 		//		readMembers();
 		loadXml();
-		showingAmerge();
 	}
 
 	public void mapRatingToFilm()

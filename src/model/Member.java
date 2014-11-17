@@ -17,7 +17,6 @@ public class Member {
 		this.accountName = accountName;
 		myRatingsKeys = new ArrayList<Integer>();
 		filmRatings = new HashMap<>();
-		//myFilms = 
 	}
 
 	public Member(String name, String account, String lastName, String[] ratings)
