@@ -1,6 +1,8 @@
 package view;
 import java.io.IOException;
+
 import model.Film;
+import model.Member;
 import model.Rating;
 import controller.Reccomender;
 import edu.princeton.cs.introcs.StdIn;
@@ -11,9 +13,12 @@ public class UI {
 	Reccomender rec = new Reccomender();
 	public UI()throws IOException{
 
-		int option = menu();
-		while (option != 0) {
-			switch (option) {
+		int myOption = menu();
+		while (myOption != 0) {
+			switch (myOption) {
+			case 0:
+				this.rec.saveXml();
+				break;
 			case 1:
 				register();		
 				break;
@@ -32,15 +37,10 @@ public class UI {
 			case 6:
 				this.rec.mapRatingToFilm();
 				break;
-			case 7:
-				StdOut.print(this.rec.checkSimilarity());
-				
-				break;
 			default:
-				this.rec.saveXml();
 				break;
 			}
-			option = menu();
+			myOption = menu();
 		}
 		StdOut.println("Exiting... bye");
 	}
@@ -54,47 +54,81 @@ public class UI {
 		String filmsList = this.rec.getFilmsSortedByYear();
 		StdOut.print(filmsList);
 	}
-	
-	private void listTopTenFilms() {
-		String filmsList = this.rec.topTenFilms();
-		StdOut.print(filmsList);
-	}
-
 
 	private void seeAllMembers() {
 		String membersList = this.rec.getMembersAsString();
 		StdOut.print(membersList);
 	}
 
+	private void membersUnseenFilms()
+	{
+		String unseenList = this.rec.getUnSeenFilmsAsString();
+		StdOut.println(unseenList);
+	}
+	//STart Back Here!
+	//	private void checkWhoIsSimilar() {
+	//		StdOut.println("which member do u want to compare against?");
+	//		for(int i=0;i<this.rec.getMembers().size();i++)
+	//		{
+	//			StdOut.println(this.rec.getMembers().get(i).getAccountName()+ "\n");
+	//		}
+	//		String name = StdIn.readString();	
+	//		Member memberTwo = this.rec.searchForMember(name);
+	//	}
+
+
 	private void rateAFilm() {
+		membersUnseenFilms();
 		StdOut.print("which film do you want to rate? Please enter id of your chosen film: " + "\n");
-		listFilmsByRating();
-		String filmId = StdIn.readString();
-		Film film = this.rec.chooseFilm(filmId);
-		if(!this.rec.getLoggedInMember().getFilmRatings().containsKey(film))
+		int filmId = StdIn.readInt();
+		if(this.rec.searchForFilm(filmId) == null)
 		{
-			StdOut.print("please enter your rating for " + film.getTitle() + "\n");
-			StdOut.print(" -5 = Terrible" + "\n" + " -3 = Didn't like it" + "\n" + " 0 = Haven't seen it" 
-					+ "\n" + " 1 = OK" + "\n" + " 3 = Liked it" + "\n" + " 5 = Really liked it" + "\n");
-			int rating = StdIn.readInt();
-			Rating r = Rating.getRating(rating);
-			//r.setM(this.rec.getLoggedInMember());
-			film.addRating(r);
-		//	this.rec.getLoggedInMember().addFilm(film);
-			//StdOut.print(r.getM().getFirstName() + " " + r.getM().getLastName() + "  ");
-			boolean success = this.rec.getLoggedInMember().addFilmRating(film, rating);
-			if(!success )
-			{
-				StdOut.println("enter a valid rating from the list");
-			}
-			else
-			{
-				StdOut.println("you have rated the film: " + film.getTitle() + " and your rating is:  " + this.rec.getLoggedInMember().getAFilmRating(rating)+ "\n");
-			}
+			StdOut.println("please select a valid id" + "\n");
+			membersUnseenFilms();
 		}
 		else
 		{
-			StdOut.println("Sorry, you have already rated this film!");
+			Film film = this.rec.searchForFilm(filmId);
+			if(!(this.rec.getLoggedInMember().ratedFilms().containsKey(film)))///need to fix this up!
+			{
+				StdOut.print("please enter your rating for " + film.getTitle() + "\n");
+				StdOut.print(" -5 = Terrible" + "\n" + " -3 = Didn't like it" + "\n" + " 0 = Haven't seen it" 
+						+ "\n" + " 1 = OK" + "\n" + " 3 = Liked it" + "\n" + " 5 = Really liked it" + "\n");
+				int rating = StdIn.readInt();
+				Rating r = Rating.getRating(rating);
+				r.setM(this.rec.getLoggedInMember());
+				film.addRating(r);
+				boolean success = this.rec.getLoggedInMember().addFilmRating(film, rating);
+				if(!success )
+				{
+					StdOut.println("enter a valid rating from the list");
+				}
+				else
+				{
+					StdOut.println("you have rated the film: " + film.getTitle() + " and your rating is:  " + this.rec.getLoggedInMember().getAFilmRating(rating)+ "\n");
+					this.rec.saveXml();	
+				}
+			}
+			else
+			{
+				StdOut.println("Sorry, you have already rated this film!");
+			}
+		}
+	}
+
+	private void viewMyRatedFilms() {
+		if(this.rec.getLoggedInMember().ratedFilms().isEmpty())
+		{
+			StdOut.println(this.rec.getLoggedInMember().getFirstName() + ", You have not rated any Films yet!" + "\n");
+		}
+		else
+		{
+			StdOut.println(this.rec.getLoggedInMember().getFirstName() + " , your rated films are : " + "\n");
+			for(int i=0;i<this.rec.getLoggedInMember().getMyFilms().size();i++)
+			{
+				StdOut.println(this.rec.getLoggedInMember().getMyFilms().get(i));
+				StdOut.println("you rated it: " + this.rec.getLoggedInMember().getRatedFilms().get(this.rec.getLoggedInMember().getMyFilms().get(i))+ "\n");
+			}
 		}
 	}
 
@@ -103,15 +137,32 @@ public class UI {
 		String title  = StdIn.readString();
 		StdOut.println("Enter the new films id: ");
 		int id = StdIn.readInt();
-		StdOut.println("Enter the new films genre: ");
-		String genre = StdIn.readString();
-		StdOut.println("Enter the new films release year: ");
-		int year = StdIn.readInt();
-		boolean success = this.rec.createFilm(id, title, year, genre);
-		if(success)
+		if(this.rec.searchForFilm(id) != null)
 		{
-			StdOut.println("Congratulations! youve added: " + title + "" + genre + " to the library" + "\n");
+			StdOut.println("This id is in use! please select a new id");
 		}
+		else
+		{
+			StdOut.println("Enter the new films genre: ");
+			String genre = StdIn.readString();
+			StdOut.println("Enter the new films release year: ");
+			int year = StdIn.readInt();
+			boolean success = this.rec.createFilm(id, title, year, genre);
+			if(success)
+			{
+				StdOut.println("Congratulations! youve added: " + title + " " + genre + " to the library" + "\n");
+			}
+		}
+	}
+
+	private void deleteMovieFromDataBase() {
+		listFilmsByRating();
+		StdOut.println("select the id of the film you wish to delete frome the dataBase " + "\n");
+		String filmId = StdIn.readString();
+		Film film = this.rec.chooseFilm(filmId);
+		StdOut.println("You have choosen to delete: " + film.getTitle() + " "+"\n");
+		this.rec.getFilms().remove(film);
+		StdOut.println(film.getTitle() + "  is deleted!");
 	}
 
 	private void logIn() {
@@ -135,9 +186,7 @@ public class UI {
 		String lastName  = StdIn.readString();
 		StdOut.println("Enter new members account name: ");
 		String accountName  = StdIn.readString();
-
 		boolean success = this.rec.register(firstName, lastName, accountName);
-
 		if(success){
 			StdOut.println("Welcome  " + firstName +  "!" + "your account has been created" + "\n");
 			StdOut.println("would you like to log in? - y/n ");
@@ -154,39 +203,19 @@ public class UI {
 		}
 	}
 
-	private void viewMyRatedFilms() {
-		if(this.rec.getLoggedInMember().getFilmRatings().isEmpty())
+	private void deleteMyAccount() {
+		StdOut.println("Do you want yo delete you account? y/n? " + "\n");
+		String reply = StdIn.readString();
+		if(reply.contains("y"))
 		{
-			StdOut.println(this.rec.getLoggedInMember().getFirstName() + ", You have not rated any Films yet!" + "\n");
+			this.rec.deleteMember();
+			StdOut.println("you account has been deleted, Please feel free to sign up again. Bye! " + "\n");
 		}
 		else
 		{
-			StdOut.println(this.rec.getLoggedInMember().getFirstName() + " , your rated films are : " + 
-					this.rec.getLoggedInMember().getFilmRatings().keySet() + "\n");
+			StdOut.println("Your account has not been deleted, please try again!" +  "\n");	
 		}
 	}
-
-//	private void checkOutMyFilms(){
-//		StdOut.print("which film do you want to view your rating for? Please enter id of your chosen film: " + "\n");
-//		listFilms();
-//		String filmId = StdIn.readString();
-//		Film film = this.rec.chooseFilm(filmId);
-//		if(this.rec.getLoggedInMember().getFilmRatings().containsKey(film))
-//		{
-//			Rating rating = null;
-//			for(int i=0;i<film.getRatings().size();i++)
-//			{
-//				Rating r = film.getRatings().get(i);
-//				if(r == this.rec.getLoggedInMember().getFilmRatings().get(film));
-//				rating  =r;
-//			}
-//			StdOut.println("you have rated the film: " + film.getTitle() + " and your rating is:  " + rating + "\n");
-//		}
-//		else
-//		{
-//			StdOut.println("Sorry, you havent rated this film yet!");
-//		}
-//	}
 
 	private void filmsOptions(){
 		int option = filmsMenu();
@@ -235,13 +264,24 @@ public class UI {
 			case 3:
 				viewMyRatedFilms();
 				break;
+			case 4:
+				this.rec.allSimilarites();
+				break;
+			case 5:
+				deleteMyAccount();
+				this.rec.setLoggedInMember(null);///need to return to main menu
+				break;
+			case 6:
+				deleteMovieFromDataBase();
+				break;
 			default: 
-				this.rec.setLoggedInMember(null);
 				break;
 			}
 			option = userMenu();
 		}
 	}
+
+
 
 	private int userMenu() {
 		StdOut.println(" Welcome to menu." + "\n"
@@ -250,6 +290,9 @@ public class UI {
 		StdOut.println("1) Rate a Film");
 		StdOut.println("2) Add a film to the library"); 
 		StdOut.println("3) List all the films i have rated");
+		StdOut.println("4) Check similarity");
+		StdOut.println("5) Delete your account");
+		StdOut.println("6) Delete a movie");
 		StdOut.println("0) Log out" + "\n");
 		int option = StdIn.readInt();
 		return option;

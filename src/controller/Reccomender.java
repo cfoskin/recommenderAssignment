@@ -3,7 +3,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import utils.FilmRatingCompare;
@@ -15,6 +14,8 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
 
 import edu.princeton.cs.introcs.Out;
+import edu.princeton.cs.introcs.StdIn;
+import edu.princeton.cs.introcs.StdOut;
 import model.Film;
 import model.Rating;
 import model.Member;
@@ -47,40 +48,76 @@ public class Reccomender {
 				Rating r = Rating.getRating(ratingKey);
 				film.addRating(r);
 				member.addFilmRating(film, ratingKey);
+				//member.addFilm(film);
 			}
 		}
+	}
+
+	private int dotProduct(ArrayList<Integer> m1Keys,ArrayList<Integer> m2Keys)
+	{
+		int dotProduct =0;
+		for(int j =0; j< m1Keys.size(); j++)
+		{
+			dotProduct += (m1Keys.get(j) * m2Keys.get(j));
+		}
+		return dotProduct;
 	}
 
 	public int checkSimilarity()
 	{
-		ArrayList<Integer> a;
-		ArrayList<Integer> b;
-		Member memberOne = null;
-		Member memberTwo = null;
 		int similarity = 0;
-		memberOne = this.getLoggedInMember();
-		a= memberOne.getMyRatingsKeys();
-		for(int i=0; i< members.size(); i++)
+		Member memberOne = this.getLoggedInMember();
+		ArrayList<Integer> m1keys = memberOne.getMyRatingsKeys();
+		StdOut.println("which member do u want to compare against?");
+		for(int j=0;j<members.size();j++)
 		{
-			similarity =0;
-			memberTwo = members.get(i);
-			b =memberTwo.getMyRatingsKeys();
-			for(int j =0; j< a.size(); j++)
-			{
-				similarity += a.get(j) * b.get(j);
-			}
+			StdOut.println(members.get(j).getAccountName()+ "\n");
 		}
-
+		String name = StdIn.readString();
+		Member memberTwo = searchForMember(name);
+		ArrayList<Integer> m2keys =memberTwo.getMyRatingsKeys();
+		similarity = dotProduct(m1keys,m2keys);
+		StdOut.print("similarity between " + memberOne.getFirstName() + " " + memberTwo.getFirstName() + "is: " +similarity);
 		return similarity;
 	}
+	
+	public void allSimilarites()
+	{
+		int similarity = 0;
+		Member memberOne = this.getLoggedInMember();
+		ArrayList<Integer> m1keys = memberOne.getMyRatingsKeys();
+		for(Member m : members)
+		{  
+			if(memberOne != m)
+			{
+				similarity =0;
+				ArrayList<Integer> member2keys =m.getMyRatingsKeys();
+				similarity = dotProduct(m1keys,member2keys);
+				StdOut.println("Similarity for " + memberOne.getFirstName() + " and "+ m.getAccountName() + " is : "+ similarity + "\n");
+			}
+		}
+	}
 
+	public String getUnSeenFilmsAsString() {
+		String result = "";
+		for(int i=0;i<films.size();i++)
+		{
+			Film film = films.get(i);
+			if(!(this.loggedInMember.getMyFilms().contains(film)))
+			{
+				//	StdOut.print(film.getTitle()+ "\n");
+				result += film + "\n";//still showing all films even seen ones.
+			}
+		}
+		return result;		
+	}
 
 	/**
 	 * @param accountName
 	 * @return
 	 * method that searches for a member by account name and returns true if found
 	 */
-	private Member searchForMember(String enteredName) 
+	public Member searchForMember(String enteredName) 
 	{
 		Member m = null;
 		for (int i=0 ; i<members.size(); i++) 
@@ -95,6 +132,23 @@ public class Reccomender {
 		return m;
 	}
 
+
+	public boolean register(String firstName, String lastName, String accountName){
+		boolean result;
+		Member m = searchForMember(accountName);
+		if(m != null)
+		{
+			result = false;
+		}
+		else
+		{
+			Member newMember = new Member(firstName, lastName, accountName);
+			addMember(newMember);
+			result = true;
+		}
+		return result;
+	}
+
 	public boolean logIn(String accountName)
 	{
 		boolean result = false;
@@ -105,6 +159,41 @@ public class Reccomender {
 			result = true;
 		}
 		return result;
+	}
+
+
+	/**
+	 * @param member
+	 * takes in a member and adds that member to the arrayList of members
+	 */
+	private void addMember(Member member) {
+		members.add(member);
+		saveXml();	
+	}
+
+	public void deleteMember()
+	{
+		members.remove(loggedInMember);
+		saveXml();	
+	}
+
+	public void deleteFilm(Film film)
+	{
+		films.remove(film);
+		saveXml();	
+	}
+	/**
+	 * @param film
+	 * method to take in a film and add it to the films array
+	 */
+	private Film addFilm(Film film) {
+		films.add(film);
+		for(int i=0; i<members.size();i++)
+		{
+			members.get(i).addUnseenFilm(film);
+		}
+		saveXml();
+		return film;
 	}
 
 	/**
@@ -130,7 +219,7 @@ public class Reccomender {
 	 * @param id
 	 * @return
 	 */
-	private Film searchForFilm(int id)
+	public Film searchForFilm(int id)
 	{
 		Film film = null;
 		for(int i=0;i<films.size();i++)
@@ -156,39 +245,6 @@ public class Reccomender {
 	}
 
 	/**
-	 * @param member
-	 * takes in a member and adds that member to the arrayList of members
-	 */
-	private void addMember(Member member) {
-		members.add(member);
-	}
-
-	public boolean register(String firstName, String lastName, String accountName){
-		boolean result;
-		Member m = searchForMember(accountName);
-		if(m != null)
-		{
-			result = false;
-		}
-		else
-		{
-			Member newMember = new Member(firstName, lastName, accountName);
-			addMember(newMember);
-			result = true;
-		}
-		return result;
-	}
-
-	/**
-	 * @param film
-	 * method to take in a film and add it to the films array
-	 */
-	private Film addFilm(Film film) {
-		films.add(film);
-		return film;
-	}
-
-	/**
 	 * method to create a new film and add it to the system
 	 */
 	public boolean createFilm(int id, String title, int year, String genre)
@@ -205,15 +261,22 @@ public class Reccomender {
 		}
 		return result;
 	}
-	
+
+
 	private ArrayList<Film> sortFilmsByRating()
 	{		
-		new Sort(new FilmRatingCompare()).selectionSort(films);
-		//Collections.sort(films, new FilmRatingCompare());
-	//	Collections.sort(films, new Film());	
+		Sort sort = new Sort(new FilmRatingCompare());
+		sort.selectionSort(films);
 		return films;
 	}
-	
+
+	private ArrayList<Film> sortFilmsByYear()
+	{		
+		Sort sort = new Sort(new FilmYearCompare());
+		sort.selectionSort(films);
+		return films;
+	}
+
 	public String getFilmsSortedByRating() {
 		sortFilmsByRating();
 		String result = "";
@@ -223,13 +286,8 @@ public class Reccomender {
 		}
 		return result;
 	}
-	
-	private ArrayList<Film> sortFilmsByYear()
-	{		
-//		Collections.sort(films, new FilmYearCompare());
-		new Sort(new FilmYearCompare()).selectionSort(films);
-		return films;
-	}
+
+
 
 	public String getFilmsSortedByYear() {
 		sortFilmsByYear();
@@ -368,4 +426,6 @@ public class Reccomender {
 	public Member getLoggedInMember() {
 		return loggedInMember;
 	}
+
+
 }

@@ -3,7 +3,7 @@ package model;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-public class Film {//implements Comparator<Film>, Comparable<Film>{
+public class Film {
 
 	private int id;
 	private String title;
@@ -12,10 +12,6 @@ public class Film {//implements Comparator<Film>, Comparable<Film>{
 	private ArrayList<Rating> ratings;
 	private int totalRatingValue;
 	private int numOfViewers;
-
-	public Film()
-	{
-	}
 
 	public Film (int id, String title, int year, String genre)
 	{
@@ -28,24 +24,7 @@ public class Film {//implements Comparator<Film>, Comparable<Film>{
 		this.numOfViewers = 0;
 	}
 	
-//	@Override
-//	public int compare(Film f1, Film f2) {
-//		return f1.year - f2.year;		
-//	}
-//	
-//	@Override
-//	public int compareTo(Film f){
-//		return (this.title).compareTo(f.title);
-//	}
-//	
-//	public int compare2(Film f1, Film f2) {
-//		return f1.totalRatingValue - f2.totalRatingValue;		
-//	}
-//	
-//	public int compareTo2(Film f){
-//		return (this.title).compareTo(f.title);
-//	}
-//	
+
 	public void addRating(Rating rating)
 	{
 		ratings.add(rating); 
@@ -53,16 +32,6 @@ public class Film {//implements Comparator<Film>, Comparable<Film>{
 		numOfViewers++;
 	}
 
-//	private String ratingsAsString()
-//	{
-//		String result ="";
-//		for(int i=0;i<ratings.size();i++)
-//		{
-//			result += ratings.get(i).getRating(i);
-//		}
-//		return result;
-//	}
-//	
 	public int getNumOfViewers() {
 		return numOfViewers;
 	}
