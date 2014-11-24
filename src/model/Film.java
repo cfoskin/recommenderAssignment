@@ -73,6 +73,10 @@ public class Film {
 		this.id = id;
 	}
 
+	public boolean equals(Object obj){
+		return this.id == ((Film) obj).getId();
+	}
+
 	public String getGenre() {
 		return genre;
 	}

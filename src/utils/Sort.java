@@ -6,7 +6,7 @@ import model.Film;
 public class Sort {
 	private Comparator<Film> comparator;
 	
-	public Sort(Comparator c ) 
+	public Sort(Comparator<Film> c ) 
 	{
           this.comparator = c;
 	}

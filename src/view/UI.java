@@ -1,8 +1,5 @@
 package view;
-import java.io.IOException;
-
 import model.Film;
-import model.Member;
 import model.Rating;
 import controller.Reccomender;
 import edu.princeton.cs.introcs.StdIn;
@@ -11,7 +8,7 @@ import edu.princeton.cs.introcs.StdOut;
 public class UI {
 
 	Reccomender rec = new Reccomender();
-	public UI()throws IOException{
+	public UI(){
 
 		int myOption = menu();
 		while (myOption != 0) {
@@ -34,9 +31,7 @@ public class UI {
 			case 5:
 				this.rec.saveXml();
 				break;
-			case 6:
-				this.rec.mapRatingToFilm();
-				break;
+			
 			default:
 				break;
 			}
@@ -65,17 +60,11 @@ public class UI {
 		String unseenList = this.rec.getUnSeenFilmsAsString();
 		StdOut.println(unseenList);
 	}
-	//STart Back Here!
-	//	private void checkWhoIsSimilar() {
-	//		StdOut.println("which member do u want to compare against?");
-	//		for(int i=0;i<this.rec.getMembers().size();i++)
-	//		{
-	//			StdOut.println(this.rec.getMembers().get(i).getAccountName()+ "\n");
-	//		}
-	//		String name = StdIn.readString();	
-	//		Member memberTwo = this.rec.searchForMember(name);
-	//	}
-
+	private void reccomendedFilms()
+	{
+		String unseenList = this.rec.getUnSeenFilmsAsString();
+		StdOut.println(unseenList);
+	}
 
 	private void rateAFilm() {
 		membersUnseenFilms();
@@ -89,7 +78,7 @@ public class UI {
 		else
 		{
 			Film film = this.rec.searchForFilm(filmId);
-			if(!(this.rec.getLoggedInMember().ratedFilms().containsKey(film)))///need to fix this up!
+			if(!(this.rec.getLoggedInMember().getMyFilms().contains(film)))///need to fix this up!
 			{
 				StdOut.print("please enter your rating for " + film.getTitle() + "\n");
 				StdOut.print(" -5 = Terrible" + "\n" + " -3 = Didn't like it" + "\n" + " 0 = Haven't seen it" 
@@ -199,7 +188,7 @@ public class UI {
 				StdOut.println("OK - GoodBye!" + "\n");
 		}
 		else{
-			StdOut.print("Sorry this account name is already in use, please choose a different one." + "\n");
+			StdOut.print("Sorry this account naallSimilaritesme is already in use, please choose a different one." + "\n");
 		}
 	}
 
@@ -264,9 +253,9 @@ public class UI {
 			case 3:
 				viewMyRatedFilms();
 				break;
-			case 4:
-				this.rec.allSimilarites();
-				break;
+//			case 4:
+//				this.rec.checkSimilarity();
+//				break;
 			case 5:
 				deleteMyAccount();
 				this.rec.setLoggedInMember(null);///need to return to main menu
@@ -274,14 +263,15 @@ public class UI {
 			case 6:
 				deleteMovieFromDataBase();
 				break;
+			case 7:
+				reccomendedFilms();
+				break;
 			default: 
 				break;
 			}
 			option = userMenu();
 		}
 	}
-
-
 
 	private int userMenu() {
 		StdOut.println(" Welcome to menu." + "\n"
@@ -293,6 +283,7 @@ public class UI {
 		StdOut.println("4) Check similarity");
 		StdOut.println("5) Delete your account");
 		StdOut.println("6) Delete a movie");
+		StdOut.println("7) See reccommended films");
 		StdOut.println("0) Log out" + "\n");
 		int option = StdIn.readInt();
 		return option;
@@ -307,8 +298,6 @@ public class UI {
 		StdOut.println("3) list all members");
 		StdOut.println("4) Films lists");
 		StdOut.println("5) Save all");
-		StdOut.println("6) Map user ratings to films");
-		StdOut.println("7) check similiarity");
 		StdOut.println("0) Exit ==>>" + "\n");
 		int option = StdIn.readInt();
 		return option;
