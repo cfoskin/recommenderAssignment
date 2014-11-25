@@ -13,9 +13,6 @@ public class UI {
 		int myOption = menu();
 		while (myOption != 0) {
 			switch (myOption) {
-			case 0:
-				this.rec.saveXml();
-				break;
 			case 1:
 				register();		
 				break;
@@ -28,17 +25,96 @@ public class UI {
 			case 4:
 				filmsOptions();
 				break;
-			case 5:
-				this.rec.saveXml();
-				break;
-			
 			default:
 				break;
 			}
 			myOption = menu();
 		}
 		StdOut.println("Exiting... bye");
+		this.rec.saveXml();
 	}
+
+	private void addpassword()
+	{
+		StdOut.println("please add a password to make your account secure"+ "\n");
+		StdOut.println("Please enter your new password: " + "\n");
+		String password  = StdIn.readString();
+		this.rec.getLoggedInMember().setPassWord(password);
+		StdOut.println("Password set! " + "\n");
+		this.rec.saveXml();
+		userOptions();		
+	}
+
+	private void logIn() {
+		StdOut.println("Please enter account name to log in: ");
+		String accountName  = StdIn.readString();
+		boolean success = this.rec.logIn(accountName);
+		if(success && this.rec.getLoggedInMember().getPassWord()!=null)
+		{
+			StdOut.println("Please enter your password: " + "\n");
+			String password  = StdIn.readString();
+			if(this.rec.checkPassWord(accountName, password) == true)
+			{
+				StdOut.println("Welcome "+ this.rec.getLoggedInMember().getFirstName() 
+						+ " " + this.rec.getLoggedInMember().getLastName() + "\n");
+				userOptions();
+			}
+			else
+			{
+				StdOut.println("Incorrect password!- please try again"+ "\n");
+			}
+
+		}
+		else if(success && this.rec.getLoggedInMember().getPassWord()==null)
+		{
+			addpassword();
+		}
+		else{
+			StdOut.println("you need to register to continue!!"+ "\n");
+		}				
+	}
+
+	private void register() {
+		StdOut.println("Welcome to the registration menu: ");
+		StdOut.println("Enter new members first name: ");
+		String firstName  = StdIn.readString();
+		StdOut.println("Enter new members last name: ");
+		String lastName  = StdIn.readString();
+		StdOut.println("Enter new members account name: ");
+		String accountName  = StdIn.readString();
+		StdOut.println("Enter a password: ");
+		String passWord  = StdIn.readString();
+		boolean success = this.rec.register(firstName, lastName, accountName, passWord);
+		if(success){
+			StdOut.println("Welcome  " + firstName +  "!" + "your account has been created" + "\n");
+			StdOut.println("would you like to log in? - y/n ");
+			String reply = StdIn.readString();
+			if(reply.equals("y"))
+			{
+				logIn();
+			}
+			else 
+				StdOut.println("OK - GoodBye!" + "\n");
+		}
+		else{
+			StdOut.print("Sorry this account naallSimilaritesme is already in use, please choose a different one." + "\n");
+		}
+	}
+
+	private void deleteMyAccount() {
+		StdOut.println("Do you want yo delete you account? y/n? " + "\n");
+		String reply = StdIn.readString();
+		if(reply.contains("y"))
+		{
+			this.rec.deleteMember();
+			StdOut.println("you account has been deleted, Please feel free to sign up again. Bye! " + "\n");
+		}
+		else
+		{
+			StdOut.println("Your account has not been deleted, please try again!" +  "\n");	
+		}
+	}
+
 
 	private void listFilmsByRating() {
 		String filmsList = this.rec.getFilmsSortedByRating();
@@ -62,8 +138,8 @@ public class UI {
 	}
 	private void reccomendedFilms()
 	{
-		String unseenList = this.rec.getUnSeenFilmsAsString();
-		StdOut.println(unseenList);
+		String reccommendedFilms = this.rec.getReccomendedFilms();
+		StdOut.println(reccommendedFilms);
 	}
 
 	private void rateAFilm() {
@@ -154,57 +230,6 @@ public class UI {
 		StdOut.println(film.getTitle() + "  is deleted!");
 	}
 
-	private void logIn() {
-		StdOut.println("Please enter account name to log in: ");
-		String accountName  = StdIn.readString();
-		boolean success = this.rec.logIn(accountName);
-		if(success){
-			StdOut.println("Welcome "+ this.rec.getLoggedInMember().getFirstName() + " " + this.rec.getLoggedInMember().getLastName() + "\n");
-			userOptions();
-		}
-		else{
-			StdOut.println("you need to register to continue!!"+ "\n");
-		}				
-	}
-
-	private void register() {
-		StdOut.println("Welcome to the registration menu: ");
-		StdOut.println("Enter new members first name: ");
-		String firstName  = StdIn.readString();
-		StdOut.println("Enter new members last name: ");
-		String lastName  = StdIn.readString();
-		StdOut.println("Enter new members account name: ");
-		String accountName  = StdIn.readString();
-		boolean success = this.rec.register(firstName, lastName, accountName);
-		if(success){
-			StdOut.println("Welcome  " + firstName +  "!" + "your account has been created" + "\n");
-			StdOut.println("would you like to log in? - y/n ");
-			String reply = StdIn.readString();
-			if(reply.equals("y"))
-			{
-				logIn();
-			}
-			else 
-				StdOut.println("OK - GoodBye!" + "\n");
-		}
-		else{
-			StdOut.print("Sorry this account naallSimilaritesme is already in use, please choose a different one." + "\n");
-		}
-	}
-
-	private void deleteMyAccount() {
-		StdOut.println("Do you want yo delete you account? y/n? " + "\n");
-		String reply = StdIn.readString();
-		if(reply.contains("y"))
-		{
-			this.rec.deleteMember();
-			StdOut.println("you account has been deleted, Please feel free to sign up again. Bye! " + "\n");
-		}
-		else
-		{
-			StdOut.println("Your account has not been deleted, please try again!" +  "\n");	
-		}
-	}
 
 	private void filmsOptions(){
 		int option = filmsMenu();
@@ -253,9 +278,9 @@ public class UI {
 			case 3:
 				viewMyRatedFilms();
 				break;
-//			case 4:
-//				this.rec.checkSimilarity();
-//				break;
+				//			case 4:
+				//				this.rec.checkSimilarity();
+				//				break;
 			case 5:
 				deleteMyAccount();
 				this.rec.setLoggedInMember(null);///need to return to main menu
