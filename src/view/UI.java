@@ -1,13 +1,13 @@
 package view;
 import model.Film;
 import model.Rating;
-import controller.Reccomender;
+import controller.Recommender;
 import edu.princeton.cs.introcs.StdIn;
 import edu.princeton.cs.introcs.StdOut;
 
 public class UI {
 
-	Reccomender rec = new Reccomender();
+	Recommender rec = new Recommender();
 	public UI(){
 
 		int myOption = menu();
@@ -49,7 +49,7 @@ public class UI {
 		StdOut.println("Please enter account name to log in: ");
 		String accountName  = StdIn.readString();
 		boolean success = this.rec.logIn(accountName);
-		if(success && this.rec.getLoggedInMember().getPassWord()!=null)
+		if(success)
 		{
 			StdOut.println("Please enter your password: " + "\n");
 			String password  = StdIn.readString();
@@ -63,11 +63,6 @@ public class UI {
 			{
 				StdOut.println("Incorrect password!- please try again"+ "\n");
 			}
-
-		}
-		else if(success && this.rec.getLoggedInMember().getPassWord()==null)
-		{
-			addpassword();
 		}
 		else{
 			StdOut.println("you need to register to continue!!"+ "\n");

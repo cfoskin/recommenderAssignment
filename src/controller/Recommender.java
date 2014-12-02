@@ -15,19 +15,33 @@ import model.Film;
 import model.Member;
 
 
-public class Reccomender {
-	public ArrayList<Member> members;
+public class Recommender {
+	protected ArrayList<Member> members;
 	private ArrayList<Film> films;
-	public Member loggedInMember;
+	protected Member loggedInMember;
 
 
-	public Reccomender()
+	public Recommender()
 	{
 		members = new ArrayList<Member>();
 		films = new ArrayList<Film>();
 		loadXml();
+		hjdhifh();
 	}
 
+	
+	private void hjdhifh()
+	{
+		String pass ="pass";
+
+		for(Member m: members)
+		{
+			m.setPassWord(pass);
+		}
+		saveXml();
+		
+	}
+	
 	public String getReccomendedFilms() {
 		Member mostSimilarMember = this.loggedInMember.findMostSimilarMember(members);
 		ArrayList<Film> reccomendedFilms = this.loggedInMember.findRecommendedFilms(mostSimilarMember);
@@ -95,36 +109,41 @@ public class Reccomender {
 			Member newMember = new Member(firstName, lastName, accountName, passWord);
 			addMember(newMember);
 			saveXml();	
+			this.loggedInMember = newMember;
 			result = true;
 		}
 		return result;
 	}
 
-	public boolean logIn(String accountName)
+	public boolean logInMember(String accountName, String password)
 	{
-		boolean result = false;
+		boolean result;
 		Member m = searchForMember(accountName);
-		if(m != null)
+		if(m != null && m.getPassWord().equals(password))
 		{
 			this.loggedInMember = m;
 			result = true;
-		}
-		return result;
-	}
-
-	public boolean checkPassWord(String accountName, String passWord)
-	{
-		boolean result = logIn(accountName);
-		if(result == true && this.loggedInMember.getPassWord().equals(passWord))
-		{
-			result = true;
-		}
-		else 
+		}	
+		else
 		{
 			result = false;
 		}
 		return result;
 	}
+
+//	public boolean checkPassWord(String accountName, String passWord)
+//	{
+//		boolean result = logIn(accountName);
+//		if(result == true && this.loggedInMember.getPassWord().equals(passWord))
+//		{
+//			result = true;
+//		}
+//		else 
+//		{
+//			result = false;
+//		}
+//		return result;
+//	}
 
 
 	/**
