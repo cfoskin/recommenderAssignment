@@ -40,8 +40,7 @@ public class Sort {
 	    	   if(this.comparator.compare(items.get(i), items.get(largestPosSoFar)) > 0){
 	    		   largestPosSoFar = i;
 	    	   }
-//	          if (items.get(i).compareTo(items.get(largestPosSoFar)))
-//	            largestPosSoFar = i;
+
 	       }
 	       return largestPosSoFar;
 	   }

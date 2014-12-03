@@ -1,6 +1,9 @@
 package controller;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+
+import javax.swing.JOptionPane;
 
 import utils.FilmRatingCompare;
 import utils.FilmYearCompare;
@@ -10,9 +13,11 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
 
 import edu.princeton.cs.introcs.Out;
+import edu.princeton.cs.introcs.StdIn;
 import edu.princeton.cs.introcs.StdOut;
 import model.Film;
 import model.Member;
+import model.Rating;
 
 
 public class Recommender {
@@ -20,63 +25,64 @@ public class Recommender {
 	private ArrayList<Film> films;
 	protected Member loggedInMember;
 
-
 	public Recommender()
 	{
 		members = new ArrayList<Member>();
 		films = new ArrayList<Film>();
 		loadXml();
-		hjdhifh();
 	}
 
-	
-	private void hjdhifh()
-	{
-		String pass ="pass";
 
-		for(Member m: members)
-		{
-			m.setPassWord(pass);
-		}
-		saveXml();
-		
-	}
-	
-	public String getReccomendedFilms() {
+	public ArrayList<Film> getReccomendedFilms() {
 		Member mostSimilarMember = this.loggedInMember.findMostSimilarMember(members);
-		ArrayList<Film> reccomendedFilms = this.loggedInMember.findRecommendedFilms(mostSimilarMember);
-		String result = "";
-		if(reccomendedFilms.isEmpty())
+		ArrayList<Film> recommendedFilms = this.loggedInMember.findRecommendedFilms(mostSimilarMember);
+		if(recommendedFilms.isEmpty())
 		{
-			result = "You have seen all the films " + mostSimilarMember.getFirstName() + " has seen! " +"\n";
+			String infoMessage = "";
+			String titleBar ="";
+			JOptionPane.showMessageDialog(null, infoMessage, "No Recommended films! " + titleBar, JOptionPane.INFORMATION_MESSAGE);
 		}
 		else
 		{
-			result = "These are the films that are reccommended by " + mostSimilarMember.getFirstName()+"\n";
 			Sort sort = new Sort(new FilmRatingCompare());
-			sort.selectionSort(reccomendedFilms);
-			for(int i=0;i<reccomendedFilms.size();i++)
-			{
-				Film film = reccomendedFilms.get(i);
-				result += film + "\n";
-			}
+			sort.selectionSort(recommendedFilms);
 		}
-		return result;		
+				return recommendedFilms;
 	}
 
-	public String getUnSeenFilmsAsString() {
-		String result = "";
+	public ArrayList getUnSeenFilms() {
+		ArrayList<Film>  unSeenFilms= new ArrayList<Film>();
 		for(int i=0;i<films.size();i++)
 		{
 			Film film = films.get(i);
 			if(!(this.loggedInMember.getMyFilms().contains(film)))
 			{
-				result += film + "\n";
+				unSeenFilms.add(film);
 			}
 		}
-		return result;		
+		Sort sort = new Sort(new FilmYearCompare());
+		sort.selectionSort(unSeenFilms);
+		Collections.reverse(unSeenFilms);
+		return unSeenFilms;		
 	}
 
+	public boolean rateAFilm(Film film, int rating) {
+
+		boolean result;
+		Rating newRating = Rating.getRating(rating);
+		film.addRating(newRating);
+		boolean success =loggedInMember.addFilmRating(film, rating);
+		if (success)
+		{
+			result = true; 
+			saveXml();
+		}
+		else
+		{
+			result =false;
+		}
+		return result;
+	}
 	/**
 	 * @param accountName
 	 * @return
@@ -131,21 +137,6 @@ public class Recommender {
 		return result;
 	}
 
-//	public boolean checkPassWord(String accountName, String passWord)
-//	{
-//		boolean result = logIn(accountName);
-//		if(result == true && this.loggedInMember.getPassWord().equals(passWord))
-//		{
-//			result = true;
-//		}
-//		else 
-//		{
-//			result = false;
-//		}
-//		return result;
-//	}
-
-
 	/**
 	 * @param member
 	 * takes in a member and adds that member to the arrayList of members
@@ -154,9 +145,9 @@ public class Recommender {
 		members.add(member);
 	}
 
-	public void deleteMember()
+	public void deleteMember(Member member)
 	{
-		members.remove(loggedInMember);
+		members.remove(member);
 		saveXml();	
 	}
 
@@ -250,17 +241,19 @@ public class Recommender {
 		return result;
 	}
 
-	private ArrayList<Film> sortFilmsByRating()
+	public ArrayList<Film> sortFilmsByRating()
 	{		
 		Sort sort = new Sort(new FilmRatingCompare());
 		sort.selectionSort(films);
+		Collections.reverse(films);
 		return films;
 	}
 
-	private ArrayList<Film> sortFilmsByYear()
+	public ArrayList<Film> sortFilmsByYear()
 	{		
 		Sort sort = new Sort(new FilmYearCompare());
 		sort.selectionSort(films);
+		Collections.reverse(films);
 		return films;
 	}
 

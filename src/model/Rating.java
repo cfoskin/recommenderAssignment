@@ -14,7 +14,6 @@ public enum Rating {
 	REALLY_LIKED_IT(5);
 
 	private int rating;
-	private Member m;
 	private static Map<Integer, Rating> ratingsMap;;
 
 	static {
@@ -28,14 +27,8 @@ public enum Rating {
 	}
 
 	private Rating(int rating){
-		this.m =m;
 		this.rating = rating;
 	}
-
-	public Member getM() {
-		return m;
-	}
-
 
 	public int getRatingValue() {
 		return this.rating;
@@ -44,10 +37,5 @@ public enum Rating {
 	public static Rating getRating(int key) {
 		return ratingsMap.get(key);
 	}
-
-	public void setM(Member m) {
-		this.m=m;
-	}
-	
 	
 }

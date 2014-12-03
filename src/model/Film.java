@@ -98,6 +98,6 @@ public class Film {
 		return "Film id= " + id + ", title=" + title + ", year=" + year
 				+ ", genre=" + genre
 				+ ", totalRatingValue=" + totalRatingValue + ", numOfViewers="
-				+ numOfViewers + "]";
+				+ numOfViewers;
 	}
 }
