@@ -2,7 +2,11 @@ package utils;
 import java.util.Comparator;
 
 import model.Film;
-
+/**
+ * @author colum foskin 
+ * this class implements comparator to make the film model sortable by year.
+ *
+ */
 public class FilmYearCompare implements Comparator<Film> {
 
 	@Override

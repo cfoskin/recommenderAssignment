@@ -3,6 +3,11 @@ import java.util.ArrayList;
 import java.util.Comparator;
 
 import model.Film;
+/**
+ * @author colum foskin
+ * this class sorts the films using the selection sort algorithim.
+ *
+ */
 public class Sort {
 	private Comparator<Film> comparator;
 	

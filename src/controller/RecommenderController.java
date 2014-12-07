@@ -2,55 +2,49 @@ package controller;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-
-import javax.swing.JOptionPane;
-
 import utils.FilmRatingCompare;
 import utils.FilmYearCompare;
 import utils.Sort;
-
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
-
 import edu.princeton.cs.introcs.Out;
-import edu.princeton.cs.introcs.StdIn;
 import edu.princeton.cs.introcs.StdOut;
 import model.Film;
 import model.Member;
 import model.Rating;
 
 
-public class Recommender {
+/**
+ * @author Colum Foskin
+ *  version 1.0
+ *  This is the main controller for the recommender system, it is the link between the views and the models.
+ */
+public class RecommenderController {
 	protected ArrayList<Member> members;
 	private ArrayList<Film> films;
 	protected Member loggedInMember;
 
-	public Recommender()
+	public RecommenderController()
 	{
 		members = new ArrayList<Member>();
 		films = new ArrayList<Film>();
 		loadXml();
 	}
 
-
-	public ArrayList<Film> getReccomendedFilms() {
+	public ArrayList getReccomendedFilms() {
 		Member mostSimilarMember = this.loggedInMember.findMostSimilarMember(members);
-		ArrayList<Film> recommendedFilms = this.loggedInMember.findRecommendedFilms(mostSimilarMember);
-		if(recommendedFilms.isEmpty())
-		{
-			String infoMessage = "";
-			String titleBar ="";
-			JOptionPane.showMessageDialog(null, infoMessage, "No Recommended films! " + titleBar, JOptionPane.INFORMATION_MESSAGE);
-		}
-		else
-		{
-			Sort sort = new Sort(new FilmRatingCompare());
-			sort.selectionSort(recommendedFilms);
-		}
-				return recommendedFilms;
+		ArrayList<Film> reccomendedFilms = this.loggedInMember.findRecommendedFilms(mostSimilarMember);
+		return reccomendedFilms;
 	}
 
-	public ArrayList getUnSeenFilms() {
+	/**
+	 * @return
+	 * this method returns a list of films for the user to choose one to
+	 * rate. it checks if the user has already rated a film and if it has 
+	 * then it does not display it in the list of films the user. users are only allowed to rate a film once
+	 * so they cannot inflate ratings or deflate ratings.
+	 */
+	public ArrayList displayUnseenFilmsForRating() {
 		ArrayList<Film>  unSeenFilms= new ArrayList<Film>();
 		for(int i=0;i<films.size();i++)
 		{
@@ -62,15 +56,18 @@ public class Recommender {
 		}
 		Sort sort = new Sort(new FilmYearCompare());
 		sort.selectionSort(unSeenFilms);
-		Collections.reverse(unSeenFilms);
+		Collections.reverse(unSeenFilms);//displaying the sorted list from top down instead of bottom up.
 		return unSeenFilms;		
 	}
 
-	public boolean rateAFilm(Film film, int rating) {
-
+	/**
+	 * @param film
+	 * @param rating
+	 * @return this method allows the user to rate a film and returns true if rating was successful.
+	 */
+	public boolean rateAFilm(Film film, Rating rating) {
 		boolean result;
-		Rating newRating = Rating.getRating(rating);
-		film.addRating(newRating);
+		film.addRating(rating);//this rating value can then be used to calculate total rating value for each film.
 		boolean success =loggedInMember.addFilmRating(film, rating);
 		if (success)
 		{
@@ -87,8 +84,9 @@ public class Recommender {
 	 * @param accountName
 	 * @return
 	 * method that searches for a member by account name and returns true if found
+	 * this is to check if an account name is already taken.
 	 */
-	public Member searchForMember(String enteredName) 
+	private Member searchForMember(String enteredName) 
 	{
 		Member m = null;
 		for (int i=0 ; i<members.size(); i++) 
@@ -103,6 +101,13 @@ public class Recommender {
 		return m;
 	}
 
+	/**
+	 * @param firstName
+	 * @param lastName
+	 * @param accountName
+	 * @param passWord
+	 * @return this method registers a new user once confirmed they are choosing a correct account name.
+	 */
 	public boolean register(String firstName, String lastName, String accountName, String passWord){
 		boolean result;
 		Member m = searchForMember(accountName);
@@ -121,6 +126,11 @@ public class Recommender {
 		return result;
 	}
 
+	/**
+	 * @param accountName
+	 * @param password
+	 * @return this method logs in a member once the account name and password are correct.
+	 */
 	public boolean logInMember(String accountName, String password)
 	{
 		boolean result;
@@ -145,24 +155,43 @@ public class Recommender {
 		members.add(member);
 	}
 
+	/**
+	 * @param member
+	 * this method deletes a member from the system
+	 */
 	public void deleteMember(Member member)
 	{
 		members.remove(member);
 		saveXml();	
 	}
 
-	public void deleteFilm(Film film)
+	/**
+	 * @param film
+	 * @return this method deletes a film from the system if it exists.
+	 * it also removes the film and rating for the film from each member.
+	 */
+	public boolean deleteFilm(Film film)
 	{
-		films.remove(film);
-		for(int i=0; i<members.size();i++)
+		boolean result;
+		if(films.contains(film))
 		{
-			if(members.get(i).getMyFilms().contains(film))
+			films.remove(film);
+			result = true;
+			for(int i=0; i<members.size();i++)
 			{
-				members.get(i).getMyFilms().remove(film);
-				members.get(i).getRatedFilms().remove(film);
+				if(members.get(i).getMyFilms().contains(film))
+				{
+					members.get(i).getMyFilms().remove(film);
+					members.get(i).getRatedFilms().remove(film);
+				}
 			}
 		}
-		saveXml();	
+		else
+		{
+			result = false;
+		}
+		saveXml();
+		return result;	
 	}
 	/**
 	 * @param film
@@ -175,27 +204,8 @@ public class Recommender {
 	}
 
 	/**
-	 * @param filmId
-	 * @return
-	 */
-	public int convertToInt(String filmId)
-	{
-		int filmIdAsInt;
-		if(filmId.charAt(0) == '-')
-		{
-			filmId = filmId.substring(1);
-			filmIdAsInt = new Integer(filmId) * -1;
-		}
-		else
-		{
-			filmIdAsInt = new Integer(filmId);
-		}
-		return filmIdAsInt;
-	}
-
-	/**
 	 * @param id
-	 * @return
+	 * @return this method is used to ensure the id given is valid and not already used
 	 */
 	public Film searchForFilm(int id)
 	{
@@ -214,17 +224,12 @@ public class Recommender {
 	}
 
 	/**
-	 * @return
-	 */
-	public Film chooseFilm(String filmId)
-	{	
-		int filmIdAsInt =convertToInt(filmId);
-		Film film = searchForFilm(filmIdAsInt);
-		return film;
-	}
-
-	/**
-	 * method to create a new film and add it to the system
+	 * @param id
+	 * @param title
+	 * @param year
+	 * @param genre
+	 * @return method to create a new film and add it to the system
+	 * returns true if successful.
 	 */
 	public boolean createFilm(int id, String title, int year, String genre)
 	{
@@ -241,51 +246,31 @@ public class Recommender {
 		return result;
 	}
 
+	/**
+	 * @return this method sorts the films in the system by rating value (Highest first)
+	 */
 	public ArrayList<Film> sortFilmsByRating()
 	{		
 		Sort sort = new Sort(new FilmRatingCompare());
 		sort.selectionSort(films);
-		Collections.reverse(films);
+		Collections.reverse(films);//display highest on top of the list
 		return films;
 	}
 
+	/**
+	 * @return this method sorts the films in the system by newest first.
+	 */
 	public ArrayList<Film> sortFilmsByYear()
 	{		
 		Sort sort = new Sort(new FilmYearCompare());
 		sort.selectionSort(films);
-		Collections.reverse(films);
+		Collections.reverse(films);//display newest on top of the list
 		return films;
 	}
 
-	public String getFilmsSortedByRating() {
-		sortFilmsByRating();
-		String result = "";
-		for(int i=0;i<films.size();i++)
-		{
-			result += films.get(i)+ "\n";
-		}
-		return result;
-	}
-
-	public String getFilmsSortedByYear() {
-		sortFilmsByYear();
-		String result = "";
-		for(int i=0;i<films.size();i++)
-		{
-			result += films.get(i)+ "\n";
-		}
-		return result;
-	}
-
-	public String getMembersAsString() {
-		String result = "";
-		for(int i=0;i<members.size();i++)
-		{
-			result += members.get(i)+ "\n";
-		}
-		return result;	
-	}
-
+	/**
+	 * this method saves the arrays of members and films in the system to xml file
+	 */
 	public void saveXml()
 	{
 		Out out = new Out("myMembers.xml");
@@ -299,6 +284,9 @@ public class Recommender {
 		o.close();
 	}
 
+	/**
+	 * this method loads the arrays of members and films in to the system from an xml file
+	 */
 	@SuppressWarnings("unchecked")
 	public void loadXml()
 	{
@@ -307,7 +295,7 @@ public class Recommender {
 			XStream xtr = new XStream(new StaxDriver());
 			members = (ArrayList<Member>) xtr.fromXML(f);
 		} catch (Exception e1) {
-			StdOut.print("No members file matey");
+			StdOut.print("No members file matey  ");
 		}
 
 		try {
@@ -315,14 +303,9 @@ public class Recommender {
 			XStream xtream = new XStream(new StaxDriver());
 			films = (ArrayList<Film>) xtream.fromXML(fa);
 		} catch (Exception e) {
-			StdOut.print("No films file matey");
+			StdOut.print("  No films file matey");
 		}
 	}
-
-	public void setLoggedInMember(Member loggedInMember) {
-		this.loggedInMember = loggedInMember;
-	}
-
 	/**
 	 * @return
 	 */
@@ -342,5 +325,11 @@ public class Recommender {
 	 */
 	public Member getLoggedInMember() {
 		return loggedInMember;
+	}
+	/**
+	 * @param loggedInMember
+	 */
+	public void setLoggedInMember(Member loggedInMember) {
+		this.loggedInMember = loggedInMember;
 	}
 }

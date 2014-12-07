@@ -4,6 +4,11 @@ import java.util.Comparator;
 
 import model.Film;
 
+/**
+ * @author colum foskin 
+ * this class implements comparator to make the film model sortable by rating.
+ *
+ */
 public class FilmRatingCompare implements Comparator<Film>{
 
 	@Override
